@@ -1,0 +1,89 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta name="viewport" charset="UTF-8" />
+    <style>
+.square {
+  position: absolute;
+  height: 100px;
+  width: 100px;
+  background-color: #000;
+  cursor: move;
+}
+</style>
+</head>
+<body>
+<div id="square" class="square"></div>
+<script type="text/javascript">
+var isMoving = new Boolean(false);
+setTimeout(update, 10);
+dragElement(document.getElementById(("square")));
+
+function update() {
+    if (!isMoving) {
+    get(1, function () {
+        document.getElementById(("square")).style.top = this;
+    });
+    get(2, function () {
+        document.getElementById(("square")).style.left = this;
+    });
+    }
+    setTimeout(update, 10);
+}
+
+function post(id, value) {
+    var url = "http://localhost:8080/add";
+    var params = "id=" + id + "&value=" + value;
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", url + "?" + params, true);
+    xhr.send(params);
+}
+
+function get(id, callback) {
+    var url = "http://localhost:8080/get";
+    var params = "id=" + id;
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200)
+            callback.call(xhr.responseText);
+    };
+    xhr.open("GET", url + "?" + params, true);
+    xhr.send();
+}
+
+function dragElement(elmnt) {
+  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  elmnt.onmousedown = dragMouseDown;
+
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    document.onmousemove = elementDrag;
+    document.getElementById("movecursor").onmousedown=null;
+  }
+
+  function elementDrag(e) {
+    isMoving = true;
+    e = e || window.event;
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+    post(1, elmnt.style.top);
+    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    post(2, elmnt.style.left);
+  }
+
+  function closeDragElement() {
+    isMoving = false;
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+}
+</script>
+</body>
+</html>
